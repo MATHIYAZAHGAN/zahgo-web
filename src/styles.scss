@@ -1,0 +1,33 @@
+/* Global Stylesheet for ZAH */
+@use './styles/variables.scss';
+@use './styles/typography.scss';
+@use './styles/utilities.scss';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

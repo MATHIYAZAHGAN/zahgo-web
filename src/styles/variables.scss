@@ -1,0 +1,110 @@
+/* ZAH Design Tokens & SCSS Variables */
+
+:root {
+  /* Brand Palette */
+  --zah-primary: #0f172a;
+  --zah-primary-hover: #1e293b;
+  --zah-primary-light: #f1f5f9;
+  
+  --zah-accent: #d4af37;
+  --zah-accent-hover: #b89628;
+  --zah-accent-light: rgba(212, 175, 55, 0.12);
+  
+  --zah-secondary: #64748b;
+  --zah-secondary-hover: #475569;
+  
+  /* Backgrounds & Surfaces */
+  --zah-bg: #f8fafc;
+  --zah-surface: #ffffff;
+  --zah-surface-secondary: #f1f5f9;
+  --zah-surface-tertiary: #e2e8f0;
+  
+  /* Text Colors */
+  --zah-text-primary: #0f172a;
+  --zah-text-secondary: #475569;
+  --zah-text-muted: #94a3b8;
+  --zah-text-inverse: #ffffff;
+  
+  /* Status & Messaging */
+  --zah-success: #10b981;
+  --zah-success-bg: #ecfdf5;
+  --zah-warning: #f59e0b;
+  --zah-warning-bg: #fffbeb;
+  --zah-danger: #ef4444;
+  --zah-danger-bg: #fef2f2;
+  --zah-info: #3b82f6;
+  --zah-info-bg: #eff6ff;
+  
+  /* Borders & Dividers */
+  --zah-border: #e2e8f0;
+  --zah-border-strong: #cbd5e1;
+  
+  /* Glassmorphism & Overlays */
+  --zah-glass-bg: rgba(255, 255, 255, 0.88);
+  --zah-glass-border: rgba(255, 255, 255, 0.3);
+  --zah-overlay-bg: rgba(15, 23, 42, 0.55);
+  
+  /* Typography Fonts */
+  --zah-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --zah-font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  
+  /* Elevation Shadows */
+  --zah-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --zah-shadow-sm: 0 2px 4px -1px rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --zah-shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --zah-shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.06);
+  --zah-shadow-xl: 0 20px 32px -8px rgba(15, 23, 42, 0.16), 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+  --zah-shadow-gold: 0 8px 20px -4px rgba(212, 175, 55, 0.35);
+  
+  /* Border Radius */
+  --zah-radius-xs: 4px;
+  --zah-radius-sm: 8px;
+  --zah-radius-md: 12px;
+  --zah-radius-lg: 16px;
+  --zah-radius-xl: 24px;
+  --zah-radius-full: 9999px;
+  
+  /* Transitions */
+  --zah-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --zah-transition-base: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --zah-transition-bounce: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Full Occupy Container Width */
+  --zah-container-max: 100%;
+  --zah-header-height: 72px;
+  --zah-mobile-nav-height: 64px;
+}
+
+/* Dark Mode Theme Tokens */
+[data-theme="dark"] {
+  --zah-primary: #ffffff;
+  --zah-primary-hover: #e2e8f0;
+  --zah-primary-light: #1e293b;
+  
+  --zah-accent: #e2b857;
+  --zah-accent-hover: #f3cf7a;
+  --zah-accent-light: rgba(226, 184, 87, 0.15);
+  
+  --zah-bg: #090d16;
+  --zah-surface: #131b2e;
+  --zah-surface-secondary: #1a253e;
+  --zah-surface-tertiary: #243252;
+  
+  --zah-text-primary: #f8fafc;
+  --zah-text-secondary: #cbd5e1;
+  --zah-text-muted: #64748b;
+  --zah-text-inverse: #0f172a;
+  
+  --zah-border: #1e293b;
+  --zah-border-strong: #334155;
+  
+  --zah-glass-bg: rgba(19, 27, 46, 0.88);
+  --zah-glass-border: rgba(255, 255, 255, 0.08);
+  --zah-overlay-bg: rgba(0, 0, 0, 0.7);
+  
+  --zah-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --zah-shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --zah-shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
+  --zah-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.6);
+  --zah-shadow-xl: 0 20px 32px -8px rgba(0, 0, 0, 0.7);
+}

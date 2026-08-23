@@ -1,0 +1,78 @@
+/* ZAH Typography Hierarchy */
+
+body {
+  font-family: var(--zah-font-sans);
+  color: var(--zah-text-primary);
+  background-color: var(--zah-bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .display-font {
+  font-family: var(--zah-font-heading);
+  color: var(--zah-text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.text-display {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+h1, .text-h1 {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  line-height: 1.2;
+}
+
+h2, .text-h2 {
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1.25;
+}
+
+h3, .text-h3 {
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  line-height: 1.3;
+}
+
+h4, .text-h4 {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.text-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.text-body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.text-caption {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--zah-text-muted);
+}
+
+.text-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
