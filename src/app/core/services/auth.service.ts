@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of, map } from 'rxjs';
+import { Observable, tap, catchError, of, map, BehaviorSubject } from 'rxjs';
 import { User, Address } from '../models/user.model';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
@@ -20,6 +20,14 @@ interface AuthResponse {
   };
 }
 
+interface OtpResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    expiresAt: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -31,6 +39,7 @@ export class AuthService {
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
   readonly accessToken = signal<string | null>(null);
+  readonly loading = signal<boolean>(false);
 
   constructor() {
     // Load user from localStorage on init
@@ -41,6 +50,8 @@ export class AuthService {
       try {
         this.currentUser.set(JSON.parse(savedUser));
         this.accessToken.set(savedToken);
+        // Load current user from backend to verify session
+        this.loadCurrentUser().subscribe();
       } catch (e) {
         console.error('Failed to parse user session:', e);
         this.logout();
@@ -64,6 +75,7 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<boolean> {
+    this.loading.set(true);
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         if (response.success && response.data) {
@@ -82,9 +94,11 @@ export class AuthService {
           
           this.notificationService.success('Welcome Back!', `Logged in successfully as ${user.name}`);
         }
+        this.loading.set(false);
       }),
       map(() => true),
       catchError(error => {
+        this.loading.set(false);
         console.error('Login error:', error);
         const message = error.error?.message || 'Invalid email or password';
         this.notificationService.error('Login Failed', message);
@@ -94,6 +108,7 @@ export class AuthService {
   }
 
   register(name: string, email: string, phone: string, password: string): Observable<boolean> {
+    this.loading.set(true);
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { 
       name, 
       email, 
@@ -117,9 +132,11 @@ export class AuthService {
           
           this.notificationService.success('Account Created!', 'Welcome to the ZAH luxury platform.');
         }
+        this.loading.set(false);
       }),
       map(() => true),
       catchError(error => {
+        this.loading.set(false);
         console.error('Registration error:', error);
         const message = error.error?.message || 'Registration failed. Please try again.';
         this.notificationService.error('Registration Failed', message);
@@ -128,7 +145,142 @@ export class AuthService {
     );
   }
 
+  // Load current user from backend
+  loadCurrentUser(): Observable<boolean> {
+    const token = this.accessToken();
+    if (!token) return of(false);
+
+    return this.http.get<AuthResponse>(`${this.apiUrl}/me`).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          const user: User = {
+            id: response.data.userId,
+            name: response.data.name,
+            email: response.data.email,
+            phone: response.data.phone,
+            rewardPoints: response.data.rewardPoints,
+            addresses: []
+          };
+          this.currentUser.set(user);
+        }
+      }),
+      map(response => response.success),
+      catchError(() => {
+        this.logout();
+        return of(false);
+      })
+    );
+  }
+
+  // Send OTP to phone number
+  sendOtp(phone: string): Observable<boolean> {
+    this.loading.set(true);
+    return this.http.post<OtpResponse>(`${this.apiUrl}/send-otp`, { phone }).pipe(
+      tap(response => {
+        this.loading.set(false);
+        if (response.success) {
+          this.notificationService.success('OTP Sent!', 'Check your phone for the verification code.');
+        }
+      }),
+      map(response => response.success),
+      catchError(error => {
+        this.loading.set(false);
+        console.error('Send OTP error:', error);
+        const message = error.error?.message || 'Failed to send OTP. Please try again.';
+        this.notificationService.error('OTP Failed', message);
+        return of(false);
+      })
+    );
+  }
+
+  // Verify OTP and authenticate
+  verifyOtp(phone: string, otp: string): Observable<boolean> {
+    this.loading.set(true);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/verify-otp`, { phone, otp }).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          const user: User = {
+            id: response.data.userId,
+            name: response.data.name,
+            email: response.data.email,
+            phone: response.data.phone,
+            rewardPoints: response.data.rewardPoints,
+            addresses: []
+          };
+          
+          this.currentUser.set(user);
+          this.accessToken.set(response.data.accessToken);
+          localStorage.setItem('zah_refresh_token', response.data.refreshToken);
+          
+          this.notificationService.success('Welcome!', `Logged in successfully as ${user.name}`);
+        }
+        this.loading.set(false);
+      }),
+      map(() => true),
+      catchError(error => {
+        this.loading.set(false);
+        console.error('Verify OTP error:', error);
+        const message = error.error?.message || 'Invalid OTP. Please try again.';
+        this.notificationService.error('Verification Failed', message);
+        return of(false);
+      })
+    );
+  }
+
+  // Forgot password - request reset
+  forgotPassword(email: string): Observable<boolean> {
+    this.loading.set(true);
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/forgot-password`, { email }).pipe(
+      tap(response => {
+        this.loading.set(false);
+        if (response.success) {
+          this.notificationService.success('Reset Email Sent!', 'Check your email for password reset instructions.');
+        }
+      }),
+      map(response => response.success),
+      catchError(error => {
+        this.loading.set(false);
+        console.error('Forgot password error:', error);
+        const message = error.error?.message || 'Failed to send reset email.';
+        this.notificationService.error('Reset Failed', message);
+        return of(false);
+      })
+    );
+  }
+
+  // Reset password with token
+  resetPassword(token: string, newPassword: string): Observable<boolean> {
+    this.loading.set(true);
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/reset-password`, { 
+      token, 
+      newPassword 
+    }).pipe(
+      tap(response => {
+        this.loading.set(false);
+        if (response.success) {
+          this.notificationService.success('Password Reset!', 'Your password has been updated successfully.');
+        }
+      }),
+      map(response => response.success),
+      catchError(error => {
+        this.loading.set(false);
+        console.error('Reset password error:', error);
+        const message = error.error?.message || 'Failed to reset password.';
+        this.notificationService.error('Reset Failed', message);
+        return of(false);
+      })
+    );
+  }
+
   logout(): void {
+    // Call logout endpoint to revoke refresh token
+    const refreshToken = localStorage.getItem('zah_refresh_token');
+    if (refreshToken) {
+      this.http.post(`${this.apiUrl}/logout`, { refreshToken }).subscribe({
+        error: (error) => console.error('Logout error:', error)
+      });
+    }
+
     this.currentUser.set(null);
     this.accessToken.set(null);
     this.notificationService.info('Logged Out', 'You have been safely signed out.');
