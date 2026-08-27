@@ -468,6 +468,16 @@ import { ZahQuickViewModalComponent } from '../../shared/components/zah-quick-vi
 
       @media (max-width: 992px) { grid-template-columns: repeat(2, 1fr); }
     }
+    @media (max-width: 560px) {
+      .rating-bar, .pincode-input-row, .action-buttons-row { flex-wrap: wrap; }
+      .pincode-input-row input { width: 100%; }
+      .action-buttons-row .zah-btn { width: 100%; }
+      .tabs-header { overflow-x: auto; }
+      .tabs-header button { white-space: nowrap; }
+      .spec-row { flex-direction: column; gap: 0.25rem; }
+      .spec-row .spec-name { width: auto; }
+      .bundle-items, .bundle-checkout { flex-direction: column; }
+    }
   `]
 })
 export class ProductDetailsComponent implements OnInit {

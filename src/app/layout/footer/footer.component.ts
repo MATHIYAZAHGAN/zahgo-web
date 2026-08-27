@@ -209,6 +209,11 @@ import { NotificationService } from '../../core/services/notification.service';
       }
     }
 
+    @media (max-width: 480px) {
+      .newsletter-form { flex-direction: column; }
+      .newsletter-form input, .newsletter-form button { width: 100%; }
+    }
+
     .footer-divider {
       border: none;
       border-top: 1px solid #1e293b;

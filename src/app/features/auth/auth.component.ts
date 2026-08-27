@@ -211,6 +211,10 @@ import { AuthService } from '../../core/services/auth.service';
                 [disabled]="authService.loading()" />
             </div>
 
+            @if (authService.errorMessage()) {
+              <p class="form-error" role="alert">{{ authService.errorMessage() }}</p>
+            }
+
             <button 
               type="submit" 
               class="zah-btn zah-btn-accent submit-btn"
@@ -295,6 +299,7 @@ import { AuthService } from '../../core/services/auth.service';
 
       h2 { font-size: 1.5rem; font-weight: 800; margin: 0; }
       .sub { font-size: 0.875rem; color: var(--zah-text-muted); margin: 0 0 0.5rem 0; line-height: 1.4; }
+      .form-error { color: var(--zah-danger); background: color-mix(in srgb, var(--zah-danger) 10%, transparent); border-left: 3px solid var(--zah-danger); padding: 0.7rem 0.8rem; margin: 0; font-size: 0.875rem; font-weight: 600; }
     }
 
     .login-methods {

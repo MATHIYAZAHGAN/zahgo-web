@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
+import { PaymentService } from '../../core/services/payment.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Address } from '../../core/models/user.model';
 
@@ -73,6 +74,36 @@ import { Address } from '../../core/models/user.model';
                 </button>
               </div>
             </div>
+
+            @if (isAddressModalOpen()) {
+              <div class="address-modal-backdrop" (click)="isAddressModalOpen.set(false)">
+                <form class="address-modal zah-card" (ngSubmit)="saveAddress()" (click)="$event.stopPropagation()">
+                  <div class="card-header">
+                    <h3>Add New Address</h3>
+                    <button type="button" class="modal-close" aria-label="Close" (click)="isAddressModalOpen.set(false)">×</button>
+                  </div>
+                  <div class="address-form-grid">
+                    <input name="fullName" [(ngModel)]="newAddress.fullName" placeholder="Full name" required />
+                    <input name="phone" [(ngModel)]="newAddress.phone" placeholder="Phone number" required />
+                    <input name="streetAddress" [(ngModel)]="newAddress.streetAddress" placeholder="Street address" required class="full" />
+                    <input name="city" [(ngModel)]="newAddress.city" placeholder="City" required />
+                    <input name="state" [(ngModel)]="newAddress.state" placeholder="State" required />
+                    <input name="pincode" [(ngModel)]="newAddress.pincode" placeholder="Pincode" required />
+                    <input name="landmark" [(ngModel)]="newAddress.landmark" placeholder="Landmark (optional)" />
+                    <select name="type" [(ngModel)]="newAddress.type">
+                      <option value="HOME">Home</option>
+                      <option value="WORK">Work</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <label class="default-check"><input type="checkbox" name="isDefault" [(ngModel)]="newAddress.isDefault" /> Make this my default address</label>
+                  <div class="modal-actions">
+                    <button type="button" class="zah-btn zah-btn-ghost" (click)="isAddressModalOpen.set(false)">Cancel</button>
+                    <button type="submit" class="zah-btn zah-btn-primary" [disabled]="authService.loading()">Save Address</button>
+                  </div>
+                </form>
+              </div>
+            }
           }
 
           <!-- Step 2: Delivery Method -->
@@ -264,6 +295,16 @@ import { Address } from '../../core/models/user.model';
       &.selected { border-color: var(--zah-accent); background: var(--zah-accent-light); }
     }
 
+    .address-modal-backdrop { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 23, 42, 0.55); }
+    .address-modal { width: min(620px, 100%); padding: 2rem; }
+    .modal-close { border: 0; background: transparent; font-size: 1.5rem; cursor: pointer; }
+    .address-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .address-form-grid input, .address-form-grid select { width: 100%; min-height: 42px; padding: 0.65rem 0.75rem; border: 1px solid var(--zah-border); border-radius: var(--zah-radius-sm); background: var(--zah-surface); color: var(--zah-text-primary); }
+    .address-form-grid .full { grid-column: 1 / -1; }
+    .default-check { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+    @media (max-width: 560px) { .address-form-grid { grid-template-columns: 1fr; } .address-form-grid .full { grid-column: auto; } }
+
     .card-top { display: flex; gap: 0.5rem; }
     .type-badge { font-size: 0.6875rem; font-weight: 700; background: var(--zah-primary); color: var(--zah-text-inverse); padding: 0.15rem 0.4rem; border-radius: 4px; }
     .default-badge { font-size: 0.6875rem; font-weight: 700; background: var(--zah-accent); color: #0f172a; padding: 0.15rem 0.4rem; border-radius: 4px; }
@@ -293,12 +334,26 @@ import { Address } from '../../core/models/user.model';
     .preview-item { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; img { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; } .item-meta { flex-grow: 1; display: flex; flex-direction: column; .name { font-weight: 600; } .qty { font-size: 0.75rem; color: var(--zah-text-muted); } } .price { font-weight: 700; } }
 
     .totals-breakdown { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; .row { display: flex; justify-content: space-between; &.total { font-size: 1.1rem; font-weight: 800; } } }
+    @media (max-width: 560px) {
+      .checkout-page { padding-top: 1.25rem; }
+      .page-title { font-size: 1.55rem; }
+      .step-card { padding: 1rem; }
+      .card-header, .step-footer { align-items: stretch; flex-direction: column; gap: 0.75rem; }
+      .card-header button, .step-footer .zah-btn { width: 100%; }
+      .addresses-grid { grid-template-columns: 1fr; }
+      .delivery-card, .pay-card { align-items: flex-start; padding: 1rem; }
+      .delivery-card .cost { margin-left: auto; white-space: nowrap; }
+      .address-modal { padding: 1.25rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+      .modal-actions { flex-direction: column-reverse; }
+      .modal-actions .zah-btn { width: 100%; }
+    }
   `]
 })
 export class CheckoutComponent {
   cartService = inject(CartService);
   authService = inject(AuthService);
   orderService = inject(OrderService);
+  paymentService = inject(PaymentService);
   notificationService = inject(NotificationService);
   router = inject(Router);
 
@@ -307,9 +362,38 @@ export class CheckoutComponent {
   deliveryMethod = signal<'STANDARD' | 'EXPRESS'>('STANDARD');
   paymentMethod = signal<'UPI' | 'CARD' | 'COD'>('UPI');
   isAddressModalOpen = signal(false);
+  isPaymentStarting = signal(false);
+  newAddress: Omit<Address, 'id'> = {
+    fullName: '', phone: '', streetAddress: '', city: '', state: '', pincode: '', landmark: '', type: 'HOME', isDefault: false
+  };
+
+  constructor() {
+    effect(() => {
+      const addresses = this.authService.currentUser()?.addresses || [];
+      if (!this.selectedAddress() && addresses.length > 0) {
+        this.selectedAddress.set(addresses.find(address => address.isDefault) || addresses[0]);
+      }
+    });
+  }
 
   goToStep(step: number) {
     this.currentStep.set(step);
+  }
+
+  saveAddress() {
+    const requiredFields = [this.newAddress.fullName, this.newAddress.phone, this.newAddress.streetAddress, this.newAddress.city, this.newAddress.state, this.newAddress.pincode];
+    if (requiredFields.some(value => !value.trim())) {
+      this.notificationService.error('Incomplete Address', 'Please fill in all required address fields.');
+      return;
+    }
+
+    this.authService.addAddress(this.newAddress).subscribe(address => {
+      if (address) {
+        this.selectedAddress.set(address);
+        this.isAddressModalOpen.set(false);
+        this.newAddress = { fullName: '', phone: '', streetAddress: '', city: '', state: '', pincode: '', landmark: '', type: 'HOME', isDefault: false };
+      }
+    });
   }
 
   submitOrder() {
@@ -317,12 +401,21 @@ export class CheckoutComponent {
       this.notificationService.error('Missing Address', 'Please select a delivery address.');
       return;
     }
-    const newOrder = this.orderService.placeOrder(
-      this.cartService.cartItems(),
-      this.cartService.cartSummary(),
-      this.selectedAddress()!,
-      this.paymentMethod()
-    );
-    this.router.navigate(['/order-confirmation'], { queryParams: { orderId: newOrder.id } });
+    if (this.isPaymentStarting()) return;
+    this.isPaymentStarting.set(true);
+    this.paymentService.createOrder(this.cartService.cartItems(), this.selectedAddress()!, this.cartService.cartSummary().appliedCouponCode).subscribe({
+      next: paymentOrder => {
+        this.paymentService.openCheckout(paymentOrder.paymentSessionId).subscribe({
+          error: () => {
+            this.isPaymentStarting.set(false);
+            this.notificationService.error('Payment Unavailable', 'We could not open secure checkout. Please try again.');
+          }
+        });
+      },
+      error: error => {
+        this.isPaymentStarting.set(false);
+        this.notificationService.error('Checkout Failed', error.error?.message || 'We could not prepare your payment.');
+      }
+    });
   }
 }

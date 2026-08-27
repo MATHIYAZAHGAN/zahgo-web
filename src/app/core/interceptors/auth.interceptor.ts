@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
 
@@ -15,7 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Clone request and add authorization header if token exists
   let authReq = req;
-  if (token && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+  if (token && !req.url.includes('/auth/login') && !req.url.includes('/auth/register') && !req.url.includes('/auth/refresh-token')) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
@@ -26,6 +26,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Handle the request and catch errors
   return next(authReq).pipe(
     catchError((error) => {
+      if (error.status === 401 && !req.url.includes('/auth/refresh-token') && localStorage.getItem('zah_refresh_token')) {
+        return authService.refreshAccessToken().pipe(
+          switchMap(newToken => {
+            if (!newToken) return throwError(() => error);
+            return next(req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } }));
+          }),
+          catchError(refreshError => {
+            authService.logout();
+            router.navigate(['/login']);
+            notificationService.error('Session Expired', 'Please sign in again to continue.');
+            return throwError(() => refreshError);
+          })
+        );
+      }
+
       if (error.status === 401) {
         // Unauthorized - clear session and redirect to login
         authService.logout();

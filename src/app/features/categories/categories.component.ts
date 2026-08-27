@@ -38,7 +38,8 @@ import { Product } from '../../core/models/product.model';
     .categories-page { padding-top: 1.5rem; padding-bottom: 4rem; }
     .breadcrumb-row { display: flex; gap: 0.5rem; font-size: 0.8125rem; color: var(--zah-text-muted); margin-bottom: 1.5rem; a:hover { color: var(--zah-accent); } .current { color: var(--zah-text-primary); font-weight: 600; } }
     .category-hero { padding: 2.5rem; background: linear-gradient(135deg, var(--zah-primary) 0%, #1e293b 100%); color: #ffffff; border-radius: var(--zah-radius-lg); margin-bottom: 2.5rem; .hero-title { font-size: 2.25rem; font-weight: 800; color: #ffffff; margin: 0 0 0.5rem 0; } .hero-subtitle { font-size: 1rem; color: #cbd5e1; margin: 0; } }
-    .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; @media (max-width: 992px) { grid-template-columns: repeat(2, 1fr); } }
+    .products-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; @media (max-width: 992px) { grid-template-columns: repeat(2, minmax(0, 1fr)); } @media (max-width: 560px) { grid-template-columns: 1fr; gap: 1rem; } }
+    @media (max-width: 560px) { .category-hero { padding: 1.5rem; margin-bottom: 1.5rem; } .category-hero .hero-title { font-size: 1.6rem; } }
   `]
 })
 export class CategoriesComponent implements OnInit {

@@ -45,7 +45,8 @@ import { Product } from '../../core/models/product.model';
     .page-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 1rem; }
     .search-bar-row { display: flex; max-width: 600px; margin: 0 auto; gap: 0.5rem; input { flex-grow: 1; padding: 0.75rem 1rem; border-radius: var(--zah-radius-md); border: 1px solid var(--zah-border-strong); background: var(--zah-surface); color: var(--zah-text-primary); font-size: 0.95rem; } }
     .results-header { margin-bottom: 1.5rem; h2 { font-size: 1.25rem; font-weight: 700; } }
-    .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; @media (max-width: 992px) { grid-template-columns: repeat(2, 1fr); } }
+    .products-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; @media (max-width: 992px) { grid-template-columns: repeat(2, minmax(0, 1fr)); } @media (max-width: 560px) { grid-template-columns: 1fr; gap: 1rem; } }
+    @media (max-width: 560px) { .search-hero { padding: 1.25rem; } .search-bar-row { flex-direction: column; } .search-bar-row .zah-btn { width: 100%; } }
   `]
 })
 export class SearchComponent implements OnInit {

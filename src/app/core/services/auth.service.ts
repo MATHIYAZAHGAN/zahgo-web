@@ -17,6 +17,7 @@ interface AuthResponse {
     refreshToken: string;
     expiresAt: string;
     rewardPoints: number;
+    addresses?: Address[];
   };
 }
 
@@ -40,6 +41,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
   readonly accessToken = signal<string | null>(null);
   readonly loading = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
 
   constructor() {
     // Load user from localStorage on init
@@ -85,7 +87,7 @@ export class AuthService {
             email: response.data.email,
             phone: response.data.phone,
             rewardPoints: response.data.rewardPoints,
-            addresses: []
+            addresses: response.data.addresses || []
           };
           
           this.currentUser.set(user);
@@ -109,6 +111,7 @@ export class AuthService {
 
   register(name: string, email: string, phone: string, password: string): Observable<boolean> {
     this.loading.set(true);
+    this.errorMessage.set(null);
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { 
       name, 
       email, 
@@ -123,7 +126,7 @@ export class AuthService {
             email: response.data.email,
             phone: response.data.phone,
             rewardPoints: response.data.rewardPoints,
-            addresses: []
+            addresses: response.data.addresses || []
           };
           
           this.currentUser.set(user);
@@ -139,6 +142,7 @@ export class AuthService {
         this.loading.set(false);
         console.error('Registration error:', error);
         const message = error.error?.message || 'Registration failed. Please try again.';
+        this.errorMessage.set(message);
         this.notificationService.error('Registration Failed', message);
         return of(false);
       })
@@ -159,7 +163,7 @@ export class AuthService {
             email: response.data.email,
             phone: response.data.phone,
             rewardPoints: response.data.rewardPoints,
-            addresses: []
+            addresses: response.data.addresses || []
           };
           this.currentUser.set(user);
         }
@@ -290,35 +294,62 @@ export class AuthService {
     return this.accessToken();
   }
 
-  addAddress(address: Omit<Address, 'id'>): void {
-    const user = this.currentUser();
-    if (!user) return;
-    
-    const newAddress: Address = {
-      ...address,
-      id: `addr-${Date.now()}`
-    };
+  refreshAccessToken(): Observable<string | null> {
+    const refreshToken = localStorage.getItem('zah_refresh_token');
+    if (!refreshToken) return of(null);
 
-    const updatedAddresses = address.isDefault
-      ? user.addresses.map(a => ({ ...a, isDefault: false }))
-      : [...user.addresses];
-
-    this.currentUser.set({
-      ...user,
-      addresses: [newAddress, ...updatedAddresses]
-    });
-
-    this.notificationService.success('Address Added', 'New shipping address saved.');
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
+      map(response => {
+        if (!response.success || !response.data) return null;
+        this.accessToken.set(response.data.accessToken);
+        localStorage.setItem('zah_refresh_token', response.data.refreshToken);
+        return response.data.accessToken;
+      }),
+      catchError(() => of(null))
+    );
   }
 
-  deleteAddress(id: string): void {
+  addAddress(address: Omit<Address, 'id'>): Observable<Address | null> {
     const user = this.currentUser();
-    if (!user) return;
+    if (!user) {
+      this.notificationService.error('Sign In Required', 'Please sign in before saving an address.');
+      return of(null);
+    }
 
-    this.currentUser.set({
-      ...user,
-      addresses: user.addresses.filter(a => a.id !== id)
-    });
-    this.notificationService.info('Address Deleted', 'Saved address removed.');
+    return this.http.post<{ success: boolean; data: Address }>(`${this.apiUrl}/addresses`, address).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          const addresses = address.isDefault
+            ? user.addresses.map(item => ({ ...item, isDefault: false }))
+            : [...user.addresses];
+          this.currentUser.set({ ...user, addresses: [response.data, ...addresses] });
+          this.notificationService.success('Address Added', 'New shipping address saved.');
+        }
+      }),
+      map(response => response.success ? response.data : null),
+      catchError(error => {
+        this.notificationService.error('Address Failed', error.error?.message || 'Could not save this address.');
+        return of(null);
+      })
+    );
+  }
+
+  deleteAddress(id: string): Observable<boolean> {
+    const user = this.currentUser();
+    if (!user) return of(false);
+
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/addresses/${id}`).pipe(
+      tap(response => {
+        if (response.success) {
+          this.currentUser.set({ ...user, addresses: user.addresses.filter(item => item.id !== id) });
+          this.notificationService.info('Address Deleted', 'Saved address removed.');
+        }
+      }),
+      map(response => response.success),
+      catchError(error => {
+        this.notificationService.error('Delete Failed', error.error?.message || 'Could not delete this address.');
+        return of(false);
+      })
+    );
   }
 }

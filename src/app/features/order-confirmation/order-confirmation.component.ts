@@ -67,6 +67,14 @@ import { Order } from '../../core/models/order.model';
     .items-grid { display: flex; flex-direction: column; gap: 0.85rem; }
     .item-row { display: flex; align-items: center; gap: 1rem; img { width: 48px; height: 48px; border-radius: 4px; object-fit: cover; } .item-info { flex-grow: 1; display: flex; flex-direction: column; .name { font-size: 0.9rem; font-weight: 600; } .qty { font-size: 0.75rem; color: var(--zah-text-muted); } } .price { font-weight: 700; } }
     .actions-row { display: flex; gap: 1rem; }
+    @media (max-width: 560px) {
+      .confirmation-page { padding-top: 1.5rem; }
+      .confirmation-card { padding: 2rem 1rem; }
+      .title { font-size: 1.55rem; }
+      .details-box, .actions-row { flex-direction: column; gap: 1rem; }
+      .details-box { padding: 1rem; }
+      .actions-row, .actions-row .zah-btn { width: 100%; }
+    }
   `]
 })
 export class OrderConfirmationComponent implements OnInit {

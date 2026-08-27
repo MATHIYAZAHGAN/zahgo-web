@@ -236,6 +236,24 @@ import { WishlistService } from '../../core/services/wishlist.service';
     .new-addr-form { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; .full { grid-column: span 2; } input { padding: 0.6rem; border-radius: var(--zah-radius-sm); border: 1px solid var(--zah-border-strong); } } .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; } }
     .addr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
     .addr-card { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; .top { display: flex; justify-content: space-between; .type { font-size: 0.7rem; font-weight: 700; background: var(--zah-primary); color: var(--zah-text-inverse); padding: 0.15rem 0.4rem; border-radius: 4px; } .del-btn { font-size: 0.75rem; color: var(--zah-danger); } } }
+    @media (max-width: 640px) {
+      .account-page { padding-top: 1.25rem; }
+      .account-header { padding: 1.25rem; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+      .user-meta { min-width: 0; }
+      .reward-box { margin-left: 88px; }
+      .account-tabs { gap: 0; overflow-x: auto; margin-bottom: 1.25rem; }
+      .account-tabs button { flex: 0 0 auto; padding: 0.75rem 1rem; white-space: nowrap; }
+      .overview-grid, .addr-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .new-addr-form { padding: 1rem; }
+      .new-addr-form .form-grid { grid-template-columns: 1fr; }
+      .new-addr-form .form-grid .full { grid-column: auto; }
+      .new-addr-form .form-actions { flex-direction: column-reverse; }
+      .new-addr-form .form-actions .zah-btn { width: 100%; }
+      .order-card { padding: 1rem; }
+      .order-card .order-header { align-items: flex-start; flex-direction: column; gap: 0.5rem; }
+      .timeline-stepper { overflow-x: auto; gap: 1rem; justify-content: flex-start; }
+      .timeline-stepper .t-step { flex: 0 0 auto; }
+    }
   `]
 })
 export class AccountComponent {
@@ -259,8 +277,9 @@ export class AccountComponent {
 
   saveAddress() {
     if (this.newAddr.fullName && this.newAddr.streetAddress) {
-      this.authService.addAddress(this.newAddr);
-      this.showNewAddrForm.set(false);
+      this.authService.addAddress(this.newAddr).subscribe(address => {
+        if (address) this.showNewAddrForm.set(false);
+      });
       this.newAddr = { fullName: '', phone: '', streetAddress: '', city: '', state: '', pincode: '', type: 'HOME', isDefault: false };
     }
   }

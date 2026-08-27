@@ -102,6 +102,18 @@ import { ZahEmptyStateComponent } from '../../shared/components/zah-empty-state.
     .coupon-box { display: flex; gap: 0.5rem; input { flex-grow: 1; padding: 0.5rem; border-radius: var(--zah-radius-sm); border: 1px solid var(--zah-border-strong); background: var(--zah-surface); color: var(--zah-text-primary); font-size: 0.85rem; } }
     .summary-rows { display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.9rem; .row { display: flex; justify-content: space-between; color: var(--zah-text-secondary); &.discount { color: var(--zah-success); } &.grand-total { font-size: 1.15rem; font-weight: 800; color: var(--zah-text-primary); } } }
     .checkout-btn { width: 100%; padding: 0.85rem; }
+    @media (max-width: 560px) {
+      .page-title { font-size: 1.55rem; }
+      .items-list, .summary-card { padding: 1rem; }
+      .cart-item-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: start; gap: 0.75rem; }
+      .item-thumb { width: 64px; height: 64px; }
+      .item-main { min-width: 0; }
+      .item-main .title { overflow-wrap: anywhere; }
+      .qty-col { grid-column: 2; width: fit-content; }
+      .price-col { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
+      .coupon-box { flex-wrap: wrap; }
+      .coupon-box input, .coupon-box button { min-width: 0; flex: 1 1 140px; }
+    }
   `]
 })
 export class CartComponent {

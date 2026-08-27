@@ -203,6 +203,7 @@ import { Product } from '../../core/models/product.model';
       display: flex;
       align-items: center;
       gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .view-switcher {
@@ -323,6 +324,11 @@ import { Product } from '../../core/models/product.model';
 
       @media (max-width: 1024px) {
         grid-template-columns: repeat(2, 1fr) !important;
+      }
+
+      @media (max-width: 560px) {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
       }
     }
   `]

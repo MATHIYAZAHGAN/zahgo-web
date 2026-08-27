@@ -107,6 +107,11 @@ import { ProductService } from '../../core/services/product.service';
       }
     }
 
+    @media (max-width: 360px) {
+      .mobile-bottom-bar { padding: 0 0.15rem; }
+      .nav-item { font-size: 0.6rem; }
+    }
+
     .nav-item {
       display: flex;
       flex-direction: column;

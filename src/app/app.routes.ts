@@ -9,6 +9,7 @@ export const routes: Routes = [
   { path: 'cart', loadComponent: () => import('./features/cart/cart.component').then(m => m.CartComponent) },
   { path: 'wishlist', loadComponent: () => import('./features/wishlist/wishlist.component').then(m => m.WishlistComponent) },
   { path: 'checkout', loadComponent: () => import('./features/checkout/checkout.component').then(m => m.CheckoutComponent) },
+  { path: 'payment/callback', loadComponent: () => import('./features/payment-callback/payment-callback.component').then(m => m.PaymentCallbackComponent) },
   { path: 'order-confirmation', loadComponent: () => import('./features/order-confirmation/order-confirmation.component').then(m => m.OrderConfirmationComponent) },
   { path: 'account', loadComponent: () => import('./features/account/account.component').then(m => m.AccountComponent) },
   { path: 'account/orders', loadComponent: () => import('./features/account/account.component').then(m => m.AccountComponent) },

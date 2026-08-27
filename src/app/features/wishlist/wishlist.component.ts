@@ -39,7 +39,8 @@ import { signal } from '@angular/core';
     .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
     .page-title { font-size: 2rem; font-weight: 800; margin: 0; }
     .clear-btn { font-size: 0.85rem; font-weight: 600; color: var(--zah-danger); }
-    .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; @media (max-width: 992px) { grid-template-columns: repeat(2, 1fr); } }
+    .products-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; @media (max-width: 992px) { grid-template-columns: repeat(2, minmax(0, 1fr)); } @media (max-width: 560px) { grid-template-columns: 1fr; gap: 1rem; } }
+    @media (max-width: 560px) { .header-row { align-items: flex-start; flex-direction: column; gap: 0.75rem; } .page-title { font-size: 1.55rem; } }
   `]
 })
 export class WishlistComponent {

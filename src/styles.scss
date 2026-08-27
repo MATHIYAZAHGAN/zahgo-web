@@ -11,6 +11,17 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  min-width: 320px;
+}
+
+@media (max-width: 768px) {
+  .app-main-content {
+    padding-bottom: calc(var(--zah-mobile-nav-height) + 1rem);
+  }
 }
 
 a {

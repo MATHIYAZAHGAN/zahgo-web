@@ -294,6 +294,13 @@ import { Product } from '../../core/models/product.model';
 
     @media (max-width: 640px) {
       .search-box-wrapper { display: none; }
+      .header-inner { height: 60px; gap: 0.5rem; }
+      .zah-logo .logo-mark { font-size: 1.45rem; }
+      .zah-logo .logo-suffix { font-size: 0.85rem; }
+      .header-actions { gap: 0.25rem; }
+      .announcement-bar { font-size: 0.62rem; white-space: nowrap; overflow: hidden; }
+      .announcement-links { gap: 0.4rem; }
+      .announcement-links a:first-child { display: none; }
     }
 
     .search-input-group {
