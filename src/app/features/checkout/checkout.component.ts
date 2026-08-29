@@ -17,7 +17,7 @@ import { Address } from '../../core/models/user.model';
     <div class="zah-container checkout-page">
       <h1 class="page-title">Express Checkout</h1>
 
-      <!-- Stepper Header Bar -->
+      <!-- Stepper Header Bar (desktop) -->
       <div class="stepper-bar zah-card">
         <div class="step-item" [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
           <span class="step-num">1</span>
@@ -40,6 +40,22 @@ import { Address } from '../../core/models/user.model';
         <div class="step-item" [class.active]="currentStep() >= 4">
           <span class="step-num">4</span>
           <span class="step-label">Review & Place Order</span>
+        </div>
+      </div>
+
+      <!-- Mobile Stepper Progress Indicator (below 768px) -->
+      <div class="mobile-stepper">
+        <div class="ms-step-label">
+          <span class="ms-step-count">Step {{ currentStep() }} of 4</span>
+          <span class="ms-step-name">
+            @if (currentStep() === 1) { Shipping Address }
+            @else if (currentStep() === 2) { Delivery Options }
+            @else if (currentStep() === 3) { Payment Method }
+            @else { Review & Place Order }
+          </span>
+        </div>
+        <div class="ms-progress-track">
+          <div class="ms-progress-fill" [style.width.%]="(currentStep() / 4) * 100"></div>
         </div>
       </div>
 
@@ -260,6 +276,58 @@ import { Address } from '../../core/models/user.model';
       &.active { background: var(--zah-accent); }
     }
 
+    /* Mobile Stepper Indicator */
+    .mobile-stepper {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.25rem;
+      background: var(--zah-surface);
+      border: 1px solid var(--zah-border);
+      border-radius: var(--zah-radius-md);
+
+      .ms-step-label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+
+        .ms-step-count {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--zah-accent);
+          white-space: nowrap;
+        }
+
+        .ms-step-name {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--zah-text-primary);
+          text-align: right;
+        }
+      }
+
+      .ms-progress-track {
+        width: 100%;
+        height: 5px;
+        background: var(--zah-surface-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .ms-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--zah-accent), var(--zah-accent-hover));
+        border-radius: 3px;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-stepper { display: flex; }
+    }
+
     .checkout-layout {
       display: grid;
       grid-template-columns: 1fr 340px;
@@ -335,15 +403,18 @@ import { Address } from '../../core/models/user.model';
 
     .totals-breakdown { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; .row { display: flex; justify-content: space-between; &.total { font-size: 1.1rem; font-weight: 800; } } }
     @media (max-width: 560px) {
-      .checkout-page { padding-top: 1.25rem; }
-      .page-title { font-size: 1.55rem; }
-      .step-card { padding: 1rem; }
-      .card-header, .step-footer { align-items: stretch; flex-direction: column; gap: 0.75rem; }
-      .card-header button, .step-footer .zah-btn { width: 100%; }
-      .addresses-grid { grid-template-columns: 1fr; }
-      .delivery-card, .pay-card { align-items: flex-start; padding: 1rem; }
-      .delivery-card .cost { margin-left: auto; white-space: nowrap; }
-      .address-modal { padding: 1.25rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+      .address-modal-backdrop {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .address-modal {
+        width: 100%;
+        padding: 1.25rem;
+        padding-bottom: calc(1.25rem + var(--zah-safe-bottom));
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: var(--zah-radius-xl) var(--zah-radius-xl) 0 0;
+      }
       .modal-actions { flex-direction: column-reverse; }
       .modal-actions .zah-btn { width: 100%; }
     }

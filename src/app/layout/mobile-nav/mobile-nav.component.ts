@@ -93,14 +93,16 @@ import { ProductService } from '../../core/services/product.service';
       left: 0;
       right: 0;
       z-index: 950;
-      height: var(--zah-mobile-nav-height);
+      height: var(--zah-mobile-nav-height-sa);
+      padding-bottom: var(--zah-safe-bottom);
       background: var(--zah-glass-bg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid var(--zah-border);
       justify-content: space-around;
       align-items: center;
-      padding: 0 0.5rem;
+      padding-left: calc(0.5rem + var(--zah-safe-left));
+      padding-right: calc(0.5rem + var(--zah-safe-right));
 
       @media (max-width: 768px) {
         display: flex;

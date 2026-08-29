@@ -7,7 +7,7 @@ import { NotificationService } from '../../core/services/notification.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="toast-container">
+    <div class="toast-container" role="status" aria-live="polite">
       @for (toast of notificationService.toasts(); track toast.id) {
         <div class="toast-card zah-card animate-slide-up" [class]="'toast-' + toast.type">
           <div class="toast-icon">
@@ -35,8 +35,8 @@ import { NotificationService } from '../../core/services/notification.service';
   styles: [`
     .toast-container {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
+      bottom: calc(2rem + var(--zah-safe-bottom));
+      right: calc(2rem + var(--zah-safe-right));
       z-index: 9999;
       display: flex;
       flex-direction: column;
@@ -48,7 +48,7 @@ import { NotificationService } from '../../core/services/notification.service';
 
     @media (max-width: 768px) {
       .toast-container {
-        bottom: 5rem; /* above sticky mobile nav */
+        bottom: calc(5rem + var(--zah-safe-bottom)); /* above sticky mobile nav */
         left: 1rem;
         right: 1rem;
         width: auto;

@@ -17,8 +17,12 @@ export class NotificationService {
   show(type: ToastMessage['type'], title: string, message: string, duration = 3500): void {
     const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
     const toast: ToastMessage = { id, type, title, message, duration };
-    
-    this.toasts.update(list => [...list, toast]);
+
+    this.toasts.update(list => {
+      const next = [...list, toast];
+      // Keep a maximum of 4 visible toasts for a clean UX
+      return next.length > 4 ? next.slice(next.length - 4) : next;
+    });
 
     if (duration > 0) {
       setTimeout(() => {

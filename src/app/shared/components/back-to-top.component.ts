@@ -46,10 +46,19 @@ import { CommonModule } from '@angular/common';
       }
     }
 
+    @media (max-width: 768px) {
+      .back-to-top-btn {
+        bottom: calc(var(--zah-mobile-nav-height-sa) + 1.25rem);
+        right: 1rem;
+        width: 46px;
+        height: 46px;
+      }
+    }
+
     @media (max-width: 640px) {
       .back-to-top-btn {
-        bottom: 1.5rem;
-        right: 1.5rem;
+        bottom: calc(var(--zah-mobile-nav-height-sa) + 0.875rem);
+        right: 0.875rem;
         width: 44px;
         height: 44px;
       }

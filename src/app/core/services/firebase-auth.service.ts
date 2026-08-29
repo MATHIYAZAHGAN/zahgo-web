@@ -3,6 +3,15 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, UserCredential } from 'firebase/auth';
 import { environment } from '../../../environments/environment';
 import { NotificationService } from './notification.service';
+import { getFriendlyErrorMessage } from './error-message.service';
+
+const FRIENDLY_FIREBASE_MESSAGES: Record<string, string> = {
+  'auth/account-exists-with-different-credential': 'An account already exists with this email. Please sign in using your original method.',
+  'auth/cancelled-popup-request': 'The sign-in request was cancelled. Please try again.',
+  'auth/operation-not-allowed': 'Google sign-in is currently unavailable. Please try again later.',
+  'auth/unauthorized-domain': 'This domain is not authorised for Google sign-in.',
+  'auth/network-request-failed': 'Network issue detected. Please check your connection and try again.'
+};
 
 @Injectable({
   providedIn: 'root'
@@ -52,7 +61,10 @@ export class FirebaseAuthService {
     } catch (error: any) {
       console.error('Firebase Google Auth error:', error);
       if (error.code !== 'auth/popup-closed-by-user') {
-        this.notificationService.error('Google Sign-In Error', error.message || 'Failed to authenticate with Google');
+        const message =
+          FRIENDLY_FIREBASE_MESSAGES[error?.code] ||
+          getFriendlyErrorMessage(error, 'We could not complete Google sign-in. Please try again.');
+        this.notificationService.error('Google Sign-In Error', message);
       }
       return null;
     }

@@ -324,6 +324,24 @@ import { WishlistService } from '../../core/services/wishlist.service';
       }
     }
 
+    /* Quick View always reachable on touch/mobile devices */
+    @media (hover: none), (max-width: 768px) {
+      .quick-actions {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .quick-view-btn {
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+      }
+
+      .wishlist-btn {
+        width: var(--zah-touch-target);
+        height: var(--zah-touch-target);
+      }
+    }
+
     .card-body {
       padding: 1.1rem;
       display: flex;

@@ -9,11 +9,13 @@ import { NotificationService } from '../../core/services/notification.service';
 import { Product } from '../../core/models/product.model';
 import { ZahProductCardComponent } from '../../shared/components/zah-product-card.component';
 import { ZahQuickViewModalComponent } from '../../shared/components/zah-quick-view-modal.component';
+import { ZahEmptyStateComponent } from '../../shared/components/zah-empty-state.component';
+import { getFriendlyErrorMessage } from '../../core/services/error-message.service';
 
 @Component({
   selector: 'zah-product-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ZahProductCardComponent, ZahQuickViewModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ZahProductCardComponent, ZahQuickViewModalComponent, ZahEmptyStateComponent],
   template: `
     @if (product()) {
       <div class="zah-container product-detail-page">
@@ -220,6 +222,16 @@ import { ZahQuickViewModalComponent } from '../../shared/components/zah-quick-vi
         </div>
 
         <zah-quick-view-modal [product]="quickViewProduct()" (close)="quickViewProduct.set(null)"></zah-quick-view-modal>
+      </div>
+    } @else if (productError()) {
+      <div class="zah-container">
+        <zah-empty-state
+          icon="error"
+          title="We Couldn't Load This Product"
+          [description]="productError()!"
+          actionButton="Try Again"
+          (actionButtonClick)="loadProduct()">
+        </zah-empty-state>
       </div>
     }
   `,
@@ -494,7 +506,9 @@ export class ProductDetailsComponent implements OnInit {
   selectedSize = signal<string | null>(null);
   quantity = signal<number>(1);
   activeTab = signal<'desc' | 'specs' | 'reviews'>('desc');
-  
+  productError = signal<string | null>(null);
+  private currentSlug = '';
+
   pincodeInput = '';
   deliveryEstimate = signal<string | null>(null);
   relatedProducts = signal<Product[]>([]);
@@ -502,37 +516,45 @@ export class ProductDetailsComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      const slug = params['slug'];
-      
-      // Try to get from loaded products first (for instant display)
-      const cachedProd = this.productService.products().find(p => p.slug === slug || p.id === slug);
-      if (cachedProd) {
-        this.product.set(cachedProd);
-        this.activeImage.set(cachedProd.images[0]);
-        this.selectedColor.set(cachedProd.availableColors?.[0] || null);
-        this.selectedSize.set(cachedProd.availableSizes?.[0] || null);
-        this.quantity.set(1);
-        
-        const related = this.productService.products().filter(p => p.category === cachedProd.category && p.id !== cachedProd.id).slice(0, 4);
-        this.relatedProducts.set(related);
-      }
-      
-      // Fetch from API for fresh data
-      this.productService.getProductBySlug(slug).subscribe(prod => {
-        if (prod) {
-          this.product.set(prod);
-          this.activeImage.set(prod.images[0]);
-          this.selectedColor.set(prod.availableColors?.[0] || null);
-          this.selectedSize.set(prod.availableSizes?.[0] || null);
-          this.quantity.set(1);
+      this.currentSlug = params['slug'];
+      this.loadProduct();
+    });
+  }
 
-          const related = this.productService.products().filter(p => p.category === prod.category && p.id !== prod.id).slice(0, 4);
-          this.relatedProducts.set(related);
+  private applyProduct(prod: Product) {
+    this.product.set(prod);
+    this.activeImage.set(prod.images[0]);
+    this.selectedColor.set(prod.availableColors?.[0] || null);
+    this.selectedSize.set(prod.availableSizes?.[0] || null);
+    this.quantity.set(1);
+
+    const related = this.productService.products().filter(p => p.category === prod.category && p.id !== prod.id).slice(0, 4);
+    this.relatedProducts.set(related);
+    this.productError.set(null);
+  }
+
+  loadProduct() {
+    if (!this.currentSlug) return;
+    this.productError.set(null);
+
+    // Try to get from loaded products first (for instant display)
+    const cachedProd = this.productService.products().find(p => p.slug === this.currentSlug || p.id === this.currentSlug);
+    if (cachedProd) {
+      this.applyProduct(cachedProd);
+    }
+
+    // Fetch from API for fresh data
+    this.productService.getProductBySlug(this.currentSlug).subscribe({
+      next: prod => {
+        if (prod) {
+          this.applyProduct(prod);
         } else {
-          this.notificationService.error('Product Not Found', 'The requested product could not be found.');
-          this.router.navigate(['/products']);
+          this.productError.set('This product is no longer available or has been removed.');
         }
-      });
+      },
+      error: err => {
+        this.productError.set(getFriendlyErrorMessage(err, 'We could not load this product right now. Please try again.'));
+      }
     });
   }
 
@@ -572,10 +594,15 @@ export class ProductDetailsComponent implements OnInit {
 
   addBundleToCart() {
     this.addToCart();
-    this.productService.getProductBySlug('zah-minimalist-luxe-chronograph-watch').subscribe(watch => {
-      if (watch) {
-        this.cartService.addToCart(watch, 1);
-        this.router.navigate(['/checkout']);
+    this.productService.getProductBySlug('zah-minimalist-luxe-chronograph-watch').subscribe({
+      next: watch => {
+        if (watch) {
+          this.cartService.addToCart(watch, 1);
+          this.router.navigate(['/checkout']);
+        }
+      },
+      error: err => {
+        this.notificationService.error('Bundle Unavailable', getFriendlyErrorMessage(err, 'The bundle companion product is unavailable right now.'));
       }
     });
   }

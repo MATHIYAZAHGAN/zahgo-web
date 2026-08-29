@@ -101,6 +101,11 @@ import { Product } from '../../core/models/product.model';
 
         <!-- Right Header Utility Actions -->
         <div class="header-actions">
+          <!-- Mobile Search Trigger (shows below 640px) -->
+          <button class="icon-action-btn show-on-mobile" (click)="openMobileSearch()" title="Search" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+
           <!-- Wishlist -->
           <a routerLink="/wishlist" class="icon-action-btn" title="Wishlist">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -146,6 +151,51 @@ import { Product } from '../../core/models/product.model';
         </div>
       </div>
     </header>
+
+    <!-- Mobile Search Overlay (below 640px) -->
+    <div class="mobile-search-overlay" [class.open]="isMobileSearchOpen()">
+      <div class="mobile-search-bar">
+        <button class="ms-back-btn" (click)="closeMobileSearch()" aria-label="Back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="ms-input-group">
+          <svg class="ms-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            type="search"
+            placeholder="Search products, brands, categories..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearchInput()"
+            (keydown.enter)="executeSearch()"
+            autocomplete="off"
+            #mobileSearchInput
+          />
+          @if (searchQuery) {
+            <button class="clear-search" (click)="searchQuery = ''; onSearchInput()">×</button>
+          }
+        </div>
+        <button class="ms-go-btn" (click)="executeSearch()">Go</button>
+      </div>
+
+      <!-- Suggestions inside mobile overlay -->
+      @if (searchQuery.trim().length > 0) {
+        <div class="ms-suggestions">
+          @if (searchResults().length > 0) {
+            @for (prod of searchResults(); track prod.id) {
+              <a [routerLink]="['/products', prod.slug]" class="ms-suggestion-item" (click)="closeMobileSearch()">
+                <img [src]="prod.images[0]" [alt]="prod.name" class="ms-item-thumb" />
+                <div class="ms-item-info">
+                  <span class="ms-item-title">{{ prod.name }}</span>
+                  <span class="ms-item-price">₹{{ prod.price | number }}</span>
+                </div>
+              </a>
+            }
+            <button class="ms-view-all" (click)="executeSearch()">View All Results →</button>
+          } @else {
+            <div class="ms-no-results">No results for "{{ searchQuery }}"</div>
+          }
+        </div>
+      }
+    </div>
   `,
   styles: [`
     .announcement-bar {
@@ -160,6 +210,22 @@ import { Product } from '../../core/models/product.model';
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
+    }
+
+    .announce-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 640px) {
+      .announcement-bar { font-size: 0.62rem; }
+      .announce-text {
+        white-space: normal;
+        line-height: 1.35;
+      }
+      .announcement-links { display: none; }
     }
 
     .announcement-links {
@@ -294,13 +360,12 @@ import { Product } from '../../core/models/product.model';
 
     @media (max-width: 640px) {
       .search-box-wrapper { display: none; }
-      .header-inner { height: 60px; gap: 0.5rem; }
+      .header-inner { height: 60px; gap: 0.5rem; padding-left: 0.75rem; padding-right: 0.75rem; }
       .zah-logo .logo-mark { font-size: 1.45rem; }
       .zah-logo .logo-suffix { font-size: 0.85rem; }
-      .header-actions { gap: 0.25rem; }
-      .announcement-bar { font-size: 0.62rem; white-space: nowrap; overflow: hidden; }
-      .announcement-links { gap: 0.4rem; }
-      .announcement-links a:first-child { display: none; }
+      .header-actions { gap: 0.15rem; }
+      .icon-action-btn { width: var(--zah-touch-target); height: var(--zah-touch-target); }
+      .user-avatar-btn { width: 42px; height: 42px; }
     }
 
     .search-input-group {
@@ -410,8 +475,8 @@ import { Product } from '../../core/models/product.model';
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
+      width: var(--zah-touch-target);
+      height: var(--zah-touch-target);
       border-radius: 50%;
       transition: var(--zah-transition-fast);
 
@@ -484,6 +549,152 @@ import { Product } from '../../core/models/product.model';
         &:hover { background: var(--zah-surface-secondary); color: var(--zah-text-primary); }
       }
     }
+
+    /* Mobile Search Overlay */
+    .mobile-search-overlay {
+      position: fixed;
+      top: var(--zah-safe-top);
+      left: 0;
+      right: 0;
+      z-index: 980;
+      background: var(--zah-surface);
+      border-bottom: 1px solid var(--zah-border);
+      box-shadow: var(--zah-shadow-lg);
+      max-height: 55vh;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(-110%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      visibility: hidden;
+
+      &.open {
+        transform: translateY(0);
+        visibility: visible;
+      }
+    }
+
+    .mobile-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+
+      .ms-back-btn {
+        width: var(--zah-touch-target);
+        height: var(--zah-touch-target);
+        border-radius: var(--zah-radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--zah-text-primary);
+        &:active { background: var(--zah-surface-secondary); }
+      }
+
+      .ms-input-group {
+        position: relative;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+
+        .ms-search-icon {
+          position: absolute;
+          left: 0.85rem;
+          color: var(--zah-text-muted);
+        }
+
+        input {
+          width: 100%;
+          padding: 0.6rem 2.25rem;
+          font-size: 16px;
+          color: var(--zah-text-primary);
+          background: var(--zah-surface-secondary);
+          border: 1px solid transparent;
+          border-radius: var(--zah-radius-full);
+          outline: none;
+          -webkit-appearance: none;
+          appearance: none;
+
+          &:focus {
+            border-color: var(--zah-accent);
+            background: var(--zah-surface);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+          }
+        }
+
+        .clear-search {
+          position: absolute;
+          right: 0.75rem;
+          font-size: 1.3rem;
+          color: var(--zah-text-muted);
+        }
+      }
+
+      .ms-go-btn {
+        padding: 0.6rem 1.1rem;
+        font-weight: 700;
+        border-radius: var(--zah-radius-full);
+        background: var(--zah-primary);
+        color: var(--zah-text-inverse);
+      }
+    }
+
+    .ms-suggestions {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0.75rem 0.875rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .ms-suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: var(--zah-radius-sm);
+      &:hover, &:active { background: var(--zah-surface-secondary); }
+
+      .ms-item-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--zah-radius-sm);
+        object-fit: cover;
+        background: var(--zah-surface-secondary);
+      }
+
+      .ms-item-info {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        .ms-item-title {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: var(--zah-text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .ms-item-price { font-size: 0.8rem; font-weight: 700; color: var(--zah-accent); }
+      }
+    }
+
+    .ms-view-all {
+      margin-top: 0.5rem;
+      padding: 0.65rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--zah-accent);
+      border-top: 1px solid var(--zah-border);
+    }
+
+    .ms-no-results {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.875rem;
+      color: var(--zah-text-muted);
+    }
   `]
 })
 export class ZahHeaderComponent {
@@ -499,10 +710,19 @@ export class ZahHeaderComponent {
   isSearchFocused = signal(false);
   searchResults = signal<Product[]>([]);
   isUserMenuOpen = signal(false);
+  isMobileSearchOpen = signal(false);
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
     this.isScrolled = window.scrollY > 20;
+  }
+
+  @HostListener('window:keydown.escape', [])
+  onEscape() {
+    if (this.isMobileSearchOpen()) {
+      this.closeMobileSearch();
+    }
+    this.closeUserMenu();
   }
 
   toggleUserMenu() {
@@ -511,6 +731,19 @@ export class ZahHeaderComponent {
 
   closeUserMenu() {
     this.isUserMenuOpen.set(false);
+  }
+
+  openMobileSearch() {
+    this.isMobileSearchOpen.set(true);
+    setTimeout(() => {
+      const inputEl = document.querySelector<HTMLInputElement>('.mobile-search-overlay input');
+      inputEl?.focus();
+    }, 60);
+  }
+
+  closeMobileSearch() {
+    this.isMobileSearchOpen.set(false);
+    this.isSearchFocused.set(false);
   }
 
   logout() {
@@ -534,6 +767,7 @@ export class ZahHeaderComponent {
     if (this.searchQuery.trim()) {
       this.productService.updateFilter({ searchQuery: this.searchQuery.trim() });
       this.isSearchFocused.set(false);
+      this.isMobileSearchOpen.set(false);
       this.router.navigate(['/search'], { queryParams: { q: this.searchQuery.trim() } });
     }
   }

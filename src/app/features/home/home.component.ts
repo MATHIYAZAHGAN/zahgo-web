@@ -347,7 +347,23 @@ import { Product } from '../../core/models/product.model';
 
       .slide-actions {
         display: flex;
+        flex-wrap: wrap;
         gap: 1rem;
+
+        .zah-btn { white-space: normal; }
+      }
+
+      @media (max-width: 640px) {
+        .slide-actions {
+          gap: 0.7rem;
+
+          .zah-btn {
+            flex-grow: 1;
+            justify-content: center;
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+        }
       }
     }
 
@@ -397,6 +413,36 @@ import { Product } from '../../core/models/product.model';
         width: 32px;
         border-radius: 6px;
         background: var(--zah-accent);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-section { height: 400px; }
+
+      .slide-title {
+        font-size: 1.85rem;
+        line-height: 1.15;
+      }
+
+      .slide-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .slider-arrow {
+        width: 40px;
+        height: 40px;
+        font-size: 1.4rem;
+
+        &.prev { left: 0.5rem; }
+        &.next { right: 0.5rem; }
+      }
+
+      .slider-dots { bottom: 1rem; }
+
+      .feature-blocks-section {
+        margin-top: -2rem;
+        margin-bottom: 2.5rem;
       }
     }
 

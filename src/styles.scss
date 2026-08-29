@@ -16,11 +16,38 @@ html, body {
 
 body {
   min-width: 320px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Keyboard & Accessibility Focus */
+:focus-visible {
+  outline: 2px solid var(--zah-accent);
+  outline-offset: 2px;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Prevent iOS Safari auto-zoom on form control focus.
+ * Inputs must be >= 16px font-size to avoid zoom-on-focus.
+ */
+@media (max-width: 480px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 @media (max-width: 768px) {
   .app-main-content {
-    padding-bottom: calc(var(--zah-mobile-nav-height) + 1rem);
+    padding-bottom: calc(var(--zah-mobile-nav-height-sa) + 1rem);
   }
 }
 

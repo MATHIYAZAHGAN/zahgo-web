@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -16,6 +16,8 @@ import { RouterModule } from '@angular/router';
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
           } @else if (icon === 'search') {
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          } @else if (icon === 'error') {
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
           } @else {
             <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
           }
@@ -30,6 +32,12 @@ import { RouterModule } from '@angular/router';
           {{ actionLabel }}
         </a>
       }
+
+      @if (actionButton && !(actionLink && actionLabel)) {
+        <button class="zah-btn zah-btn-primary action-btn" (click)="actionButtonClick.emit()">
+          {{ actionButton }}
+        </button>
+      }
     </div>
   `,
   styles: [`
@@ -41,9 +49,13 @@ import { RouterModule } from '@angular/router';
       text-align: center;
       padding: 4rem 1.5rem;
       background-color: var(--zah-surface);
-      border: 1px border var(--zah-border);
+      border: 1px solid var(--zah-border);
       border-radius: var(--zah-radius-lg);
       margin: 2rem 0;
+
+      @media (max-width: 480px) {
+        padding: 2.5rem 1rem;
+      }
     }
 
     .icon-wrapper {
@@ -79,9 +91,11 @@ import { RouterModule } from '@angular/router';
   `]
 })
 export class ZahEmptyStateComponent {
-  @Input() icon: 'cart' | 'heart' | 'search' | 'package' = 'package';
+  @Input() icon: 'cart' | 'heart' | 'search' | 'package' | 'error' = 'package';
   @Input({ required: true }) title!: string;
   @Input({ required: true }) description!: string;
   @Input() actionLink?: string = '/products';
   @Input() actionLabel?: string = 'Explore Collections';
+  @Input() actionButton?: string;
+  @Output() actionButtonClick = new EventEmitter<void>();
 }

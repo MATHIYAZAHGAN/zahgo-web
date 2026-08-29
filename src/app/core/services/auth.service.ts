@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map, BehaviorSubject } from 'rxjs';
 import { User, Address } from '../models/user.model';
 import { NotificationService } from './notification.service';
+import { getFriendlyErrorMessage } from './error-message.service';
 import { environment } from '../../../environments/environment';
 
 interface AuthResponse {
@@ -89,11 +90,11 @@ export class AuthService {
             rewardPoints: response.data.rewardPoints,
             addresses: response.data.addresses || []
           };
-          
+
           this.currentUser.set(user);
           this.accessToken.set(response.data.accessToken);
           localStorage.setItem('zah_refresh_token', response.data.refreshToken);
-          
+
           this.notificationService.success('Welcome Back!', `Logged in successfully as ${user.name}`);
         }
         this.loading.set(false);
@@ -102,7 +103,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Login error:', error);
-        const message = error.error?.message || 'Invalid email or password';
+        const message = getFriendlyErrorMessage(error, 'Invalid email or password');
         this.notificationService.error('Login Failed', message);
         return of(false);
       })
@@ -141,7 +142,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Registration error:', error);
-        const message = error.error?.message || 'Registration failed. Please try again.';
+        const message = getFriendlyErrorMessage(error, 'Registration failed. Please try again.');
         this.errorMessage.set(message);
         this.notificationService.error('Registration Failed', message);
         return of(false);
@@ -169,8 +170,13 @@ export class AuthService {
         }
       }),
       map(response => response.success),
-      catchError(() => {
-        this.logout();
+      catchError(error => {
+        // Only treat an explicit 401/403 as an invalid session.
+        // Network errors (offline, 5xx) keep the local session so the
+        // user isn't unexpectedly signed out during a temporary outage.
+        if (error?.status === 401 || error?.status === 403) {
+          this.logout();
+        }
         return of(false);
       })
     );
@@ -190,7 +196,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Send OTP error:', error);
-        const message = error.error?.message || 'Failed to send OTP. Please try again.';
+        const message = getFriendlyErrorMessage(error, 'Failed to send OTP. Please try again.');
         this.notificationService.error('OTP Failed', message);
         return of(false);
       })
@@ -224,7 +230,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Verify OTP error:', error);
-        const message = error.error?.message || 'Invalid OTP. Please try again.';
+        const message = getFriendlyErrorMessage(error, 'Invalid OTP. Please try again.');
         this.notificationService.error('Verification Failed', message);
         return of(false);
       })
@@ -258,7 +264,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Google Sign-In error:', error);
-        const message = error.error?.message || 'Google Sign-In failed. Please try again.';
+        const message = getFriendlyErrorMessage(error, 'Google Sign-In failed. Please try again.');
         this.notificationService.error('Sign-In Failed', message);
         return of(false);
       })
@@ -279,7 +285,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Forgot password error:', error);
-        const message = error.error?.message || 'Failed to send reset email.';
+        const message = getFriendlyErrorMessage(error, 'Failed to send reset email.');
         this.notificationService.error('Reset Failed', message);
         return of(false);
       })
@@ -303,7 +309,7 @@ export class AuthService {
       catchError(error => {
         this.loading.set(false);
         console.error('Reset password error:', error);
-        const message = error.error?.message || 'Failed to reset password.';
+        const message = getFriendlyErrorMessage(error, 'Failed to reset password.');
         this.notificationService.error('Reset Failed', message);
         return of(false);
       })
@@ -364,7 +370,7 @@ export class AuthService {
       }),
       map(response => response.success ? response.data : null),
       catchError(error => {
-        this.notificationService.error('Address Failed', error.error?.message || 'Could not save this address.');
+        this.notificationService.error('Address Failed', getFriendlyErrorMessage(error, 'Could not save this address.'));
         return of(null);
       })
     );
@@ -383,7 +389,7 @@ export class AuthService {
       }),
       map(response => response.success),
       catchError(error => {
-        this.notificationService.error('Delete Failed', error.error?.message || 'Could not delete this address.');
+        this.notificationService.error('Delete Failed', getFriendlyErrorMessage(error, 'Could not delete this address.'));
         return of(false);
       })
     );

@@ -4,6 +4,23 @@ import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
+import { getFriendlyErrorMessage, HTTP_FALLBACK_MESSAGES } from '../services/error-message.service';
+
+const CREDENTIAL_FLOWS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/send-otp',
+  '/auth/verify-otp',
+  '/auth/google-login',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/refresh-token',
+  '/auth/logout'
+];
+
+function isCredentialFlow(url: string): boolean {
+  return CREDENTIAL_FLOWS.some(segment => url.includes(segment));
+}
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -26,8 +43,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Handle the request and catch errors
   return next(authReq).pipe(
     catchError((error) => {
-      // Do not attempt token refresh for auth endpoints to prevent loops
-      if (req.url.includes('/auth/logout') || req.url.includes('/auth/refresh-token')) {
+      // Never attempt token refresh / session handling for credential flows —
+      // those are handled by AuthService with their own friendly messages.
+      if (isCredentialFlow(req.url)) {
         return throwError(() => error);
       }
 
@@ -51,13 +69,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         const authService = injector.get(AuthService);
         authService.logout();
         router.navigate(['/login']);
-        notificationService.error('Session Expired', 'Please log in again to continue.');
+        notificationService.error('Session Expired', 'Please sign in again to continue.');
       } else if (error.status === 403) {
-        notificationService.error('Access Denied', 'You do not have permission to access this resource.');
+        notificationService.error('Access Denied', 'You do not have permission to perform this action.');
       } else if (error.status === 429) {
         notificationService.error('Too Many Attempts', 'Please wait a moment before trying again.');
+      } else if (
+        error.status === 0 ||
+        error.status === 408 ||
+        error.status === 500 ||
+        error.status === 502 ||
+        error.status === 503 ||
+        error.status === 504
+      ) {
+        // Infrastructure / server errors: surface one clean, friendly message.
+        const fallback =
+          (error.status && HTTP_FALLBACK_MESSAGES[error.status]) ||
+          'Something went wrong. Please try again in a moment.';
+        notificationService.error('Connection Issue', getFriendlyErrorMessage(error, fallback));
       }
-      
+
       return throwError(() => error);
     })
   );

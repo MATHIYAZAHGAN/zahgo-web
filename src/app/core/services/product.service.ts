@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap, catchError, of, map } from 'rxjs';
+import { Observable, tap, catchError, of, map, throwError } from 'rxjs';
 import { Product, FilterState } from '../models/product.model';
 import { environment } from '../../../environments/environment';
 
@@ -15,6 +15,8 @@ export class ProductService {
   readonly categories = signal<any[]>([]);
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly categoriesError = signal<string | null>(null);
+  readonly isCategoriesLoading = signal(false);
   
   readonly recentlyViewed = signal<Product[]>([]);
 
@@ -107,7 +109,7 @@ export class ProductService {
       }),
       catchError(error => {
         console.error('Error loading products:', error);
-        this.error.set('Failed to load products from server. Please try again.');
+        this.error.set('We couldn\'t load the products right now. Please check your connection and try again.');
         this.isLoading.set(false);
         return of(null);
       })
@@ -115,17 +117,30 @@ export class ProductService {
   }
 
   /**
+   * Reload products and categories after a failure (manual retry).
+   */
+  retryLoad(): void {
+    this.loadProducts();
+    this.loadCategories();
+  }
+
+  /**
    * Load all categories from backend API
    */
   loadCategories(): void {
+    this.isCategoriesLoading.set(true);
+    this.categoriesError.set(null);
     this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
       tap(response => {
         if (response.success && response.data) {
           this.categories.set(response.data);
         }
+        this.isCategoriesLoading.set(false);
       }),
       catchError(error => {
         console.error('Error loading categories:', error);
+        this.categoriesError.set('Categories are temporarily unavailable.');
+        this.isCategoriesLoading.set(false);
         return of(null);
       })
     ).subscribe();
@@ -144,8 +159,11 @@ export class ProductService {
         return null;
       }),
       catchError(error => {
+        // A genuine 404 means the product is missing — return null.
+        if (error?.status === 404) return of(null);
+        // Anything else is an infrastructure/server problem — let callers show a friendly message.
         console.error('Error fetching product:', error);
-        return of(null);
+        return throwError(() => error);
       })
     );
   }

@@ -102,10 +102,36 @@
 }
 
 .zah-btn-icon {
-  width: 42px;
-  height: 42px;
+  width: var(--zah-touch-target);
+  height: var(--zah-touch-target);
+  min-width: var(--zah-touch-target);
+  min-height: var(--zah-touch-target);
   padding: 0;
   border-radius: var(--zah-radius-full);
+}
+
+@media (max-width: 768px) {
+  .zah-btn-lg {
+    padding: 0.9rem 1.4rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobile Visibility Utilities */
+@media (max-width: 768px) {
+  .hide-on-mobile { display: none !important; }
+  .show-on-mobile { display: flex !important; }
+}
+
+.show-on-mobile { display: none; }
+
+/* Root Safe-Area Padding Helper */
+.safe-area-bottom {
+  padding-bottom: var(--zah-safe-bottom);
+}
+
+.safe-area-top {
+  padding-top: var(--zah-safe-top);
 }
 
 .zah-btn-sm {

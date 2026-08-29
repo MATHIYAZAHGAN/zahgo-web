@@ -168,6 +168,7 @@ import { WishlistService } from '../../core/services/wishlist.service';
       align-items: center;
       justify-content: space-between;
       padding: 1.25rem;
+      padding-top: calc(1.25rem + var(--zah-safe-top));
       border-bottom: 1px solid var(--zah-border);
 
       .header-title {
@@ -245,8 +246,19 @@ import { WishlistService } from '../../core/services/wishlist.service';
       align-items: center;
       border: 1px solid var(--zah-border-strong);
       border-radius: var(--zah-radius-sm);
-      button { width: 28px; height: 28px; font-weight: 700; }
-      span { width: 28px; text-align: center; font-size: 0.85rem; font-weight: 600; }
+
+      button {
+        width: var(--zah-touch-target);
+        height: var(--zah-touch-target);
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--zah-text-primary);
+        border-radius: var(--zah-radius-sm);
+
+        &:active { background: var(--zah-surface-secondary); }
+      }
+
+      span { width: 32px; text-align: center; font-size: 0.9rem; font-weight: 600; }
     }
 
     .item-price { font-size: 0.95rem; font-weight: 700; color: var(--zah-text-primary); }
@@ -274,6 +286,7 @@ import { WishlistService } from '../../core/services/wishlist.service';
 
     .drawer-footer {
       padding: 1.25rem;
+      padding-bottom: calc(1.25rem + var(--zah-safe-bottom));
       border-top: 1px solid var(--zah-border);
       background: var(--zah-surface);
       display: flex;
