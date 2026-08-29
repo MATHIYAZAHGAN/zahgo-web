@@ -114,10 +114,10 @@ import { Address } from '../../core/models/user.model';
                 <label class="delivery-card" [class.selected]="deliveryMethod() === 'STANDARD'" (click)="deliveryMethod.set('STANDARD')">
                   <input type="radio" name="del" [checked]="deliveryMethod() === 'STANDARD'" />
                   <div>
-                    <strong>Standard Express Delivery (FREE)</strong>
+                    <strong>Standard Delivery (₹1)</strong>
                     <p>Delivered within 2–3 business days with full real-time tracking.</p>
                   </div>
-                  <span class="cost">FREE</span>
+                  <span class="cost">₹1</span>
                 </label>
 
                 <label class="delivery-card" [class.selected]="deliveryMethod() === 'EXPRESS'" (click)="deliveryMethod.set('EXPRESS')">
