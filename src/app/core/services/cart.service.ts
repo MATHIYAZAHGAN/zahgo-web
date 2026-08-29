@@ -31,11 +31,11 @@ export class CartService {
       discountAmount = coupon.maxDiscount ? Math.min(calcDiscount, coupon.maxDiscount) : calcDiscount;
     }
 
-    const freeShippingThreshold = 1999;
-    const shippingFee = (subtotal === 0 || subtotal >= freeShippingThreshold) ? 0 : 149;
+    const freeShippingThreshold = 0;
+    const shippingFee = subtotal === 0 ? 0 : 1;
     const estimatedTax = Math.round((subtotal - discountAmount) * 0.05); // 5% GST
     const total = Math.max(0, subtotal - discountAmount + shippingFee + estimatedTax);
-    const amountForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+    const amountForFreeShipping = 0;
 
     return {
       subtotal,
