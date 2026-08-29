@@ -61,7 +61,10 @@ export class PaymentService {
   }
 
   private async getCashfree() {
-    if (!this.cashfree) this.cashfree = await load({ mode: 'sandbox' });
+    if (!this.cashfree) {
+      const mode = environment.cashfreeEnv || (environment.production ? 'production' : 'sandbox');
+      this.cashfree = await load({ mode });
+    }
     return this.cashfree;
   }
 }

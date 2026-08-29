@@ -231,6 +231,40 @@ export class AuthService {
     );
   }
 
+  // Google Sign-In via Firebase
+  loginWithGoogle(payload: { email: string; name: string; firebaseUid?: string; photoUrl?: string; idToken?: string }): Observable<boolean> {
+    this.loading.set(true);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/google-login`, payload).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          const user: User = {
+            id: response.data.userId,
+            name: response.data.name,
+            email: response.data.email,
+            phone: response.data.phone,
+            rewardPoints: response.data.rewardPoints,
+            addresses: response.data.addresses || []
+          };
+          
+          this.currentUser.set(user);
+          this.accessToken.set(response.data.accessToken);
+          localStorage.setItem('zah_refresh_token', response.data.refreshToken);
+          
+          this.notificationService.success('Welcome to ZAH!', `Signed in with Google as ${user.name}`);
+        }
+        this.loading.set(false);
+      }),
+      map(() => true),
+      catchError(error => {
+        this.loading.set(false);
+        console.error('Google Sign-In error:', error);
+        const message = error.error?.message || 'Google Sign-In failed. Please try again.';
+        this.notificationService.error('Sign-In Failed', message);
+        return of(false);
+      })
+    );
+  }
+
   // Forgot password - request reset
   forgotPassword(email: string): Observable<boolean> {
     this.loading.set(true);
@@ -277,14 +311,16 @@ export class AuthService {
   }
 
   logout(): void {
-    // Call logout endpoint to revoke refresh token
     const refreshToken = localStorage.getItem('zah_refresh_token');
     if (refreshToken) {
-      this.http.post(`${this.apiUrl}/logout`, { refreshToken }).subscribe({
-        error: (error) => console.error('Logout error:', error)
-      });
+      this.http.post(`${this.apiUrl}/logout`, { refreshToken }).pipe(
+        catchError(() => of(null))
+      ).subscribe();
     }
 
+    localStorage.removeItem('zah_user');
+    localStorage.removeItem('zah_access_token');
+    localStorage.removeItem('zah_refresh_token');
     this.currentUser.set(null);
     this.accessToken.set(null);
     this.notificationService.info('Logged Out', 'You have been safely signed out.');
